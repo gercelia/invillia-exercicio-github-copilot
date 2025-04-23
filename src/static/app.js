@@ -29,7 +29,14 @@ document.addEventListener("DOMContentLoaded", () => {
           <ul class="participants-list">
             ${
               details.participants.length > 0
-                ? details.participants.map(participant => `<li>${participant}</li>`).join("")
+                ? details.participants.map(participant => `
+                    <li>
+                      ${participant}
+                      <button class="cancel-button" data-activity="${name}" data-email="${participant}">
+                        Cancel
+                      </button>
+                    </li>
+                  `).join("")
                 : "<li>No participants yet</li>"
             }
           </ul>
@@ -43,9 +50,53 @@ document.addEventListener("DOMContentLoaded", () => {
         option.textContent = name;
         activitySelect.appendChild(option);
       });
+
+      // Add event listeners to cancel buttons
+      document.querySelectorAll(".cancel-button").forEach(button => {
+        button.addEventListener("click", (event) => {
+          const activity = event.target.dataset.activity;
+          const email = event.target.dataset.email;
+          cancelSignup(activity, email);
+        });
+      });
     } catch (error) {
       activitiesList.innerHTML = "<p>Failed to load activities. Please try again later.</p>";
       console.error("Error fetching activities:", error);
+    }
+  }
+
+  // Function to cancel signup
+  async function cancelSignup(activity, email) {
+    try {
+      const response = await fetch(
+        `/activities/${encodeURIComponent(activity)}/cancel?email=${encodeURIComponent(email)}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      const result = await response.json();
+
+      if (response.ok) {
+        messageDiv.textContent = result.message;
+        messageDiv.className = "success";
+        fetchActivities(); // Refresh activities list
+      } else {
+        messageDiv.textContent = result.detail || "An error occurred";
+        messageDiv.className = "error";
+      }
+
+      messageDiv.classList.remove("hidden");
+
+      // Hide message after 5 seconds
+      setTimeout(() => {
+        messageDiv.classList.add("hidden");
+      }, 5000);
+    } catch (error) {
+      messageDiv.textContent = "Failed to cancel signup. Please try again.";
+      messageDiv.className = "error";
+      messageDiv.classList.remove("hidden");
+      console.error("Error canceling signup:", error);
     }
   }
 
@@ -70,6 +121,7 @@ document.addEventListener("DOMContentLoaded", () => {
         messageDiv.textContent = result.message;
         messageDiv.className = "success";
         signupForm.reset();
+        fetchActivities(); // Atualiza a lista de atividades após o cadastro
       } else {
         messageDiv.textContent = result.detail || "An error occurred";
         messageDiv.className = "error";
