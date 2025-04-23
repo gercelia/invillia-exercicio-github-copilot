@@ -14,12 +14,10 @@ from pathlib import Path
 app = FastAPI(title="Mergington High School API",
               description="API for viewing and signing up for extracurricular activities")
 
-# Mount the static files directory
 current_dir = Path(__file__).parent
 app.mount("/static", StaticFiles(directory=os.path.join(Path(__file__).parent,
           "static")), name="static")
 
-# In-memory activity database
 activities = {
     "Chess Club": {
         "description": "Learn strategies and compete in chess tournaments",
@@ -74,53 +72,57 @@ activities = {
         "schedule": "Fridays, 4:00 PM - 5:30 PM",
         "max_participants": 12,
         "participants": ["charlotte@mergington.edu", "amelia@mergington.edu"]
+    },
+    "Photography Club": {
+        "description": "Learn photography techniques and participate in photo walks",
+        "schedule": "Saturdays, 10:00 AM - 12:00 PM",
+        "max_participants": 10,
+        "participants": ["lucas@mergington.edu"]
+    },
+    "Robotics Club": {
+        "description": "Build and program robots for competitions",
+        "schedule": "Mondays and Wednesdays, 4:00 PM - 5:30 PM",
+        "max_participants": 15,
+        "participants": ["sophia@mergington.edu", "ethan@mergington.edu"]
+    },
+    "Music Band": {
+        "description": "Join the school band and perform at events",
+        "schedule": "Tuesdays and Thursdays, 3:30 PM - 5:00 PM",
+        "max_participants": 20,
+        "participants": ["oliver@mergington.edu", "isabella@mergington.edu"]
     }
 }
-
 
 @app.get("/")
 def root():
     return RedirectResponse(url="/static/index.html")
 
-
 @app.get("/activities")
 def get_activities():
     return activities
 
-
 @app.post("/activities/{activity_name}/signup")
 def signup_for_activity(activity_name: str, email: str):
-    """Sign up a student for an activity"""
-    # Validate activity exists
     if activity_name not in activities:
         raise HTTPException(status_code=404, detail="Activity not found")
 
-    # Get the specificy activity
     activity = activities[activity_name]
 
-    # Validar se o aluno já está inscrito
     if email in activity["participants"]:
         raise HTTPException(status_code=400, detail="Student is already signed up for this activity")
 
-    # Adiciona o aluno à lista de participantes
     activity["participants"].append(email)
     return {"message": f"Signed up {email} for {activity_name}"}
 
-
 @app.delete("/activities/{activity_name}/cancel")
 def cancel_activity(activity_name: str, email: str):
-    """Cancel a student's enrollment in an activity"""
-    # Validate activity exists
     if activity_name not in activities:
         raise HTTPException(status_code=404, detail="Activity not found")
 
-    # Get the specific activity
     activity = activities[activity_name]
 
-    # Validate if the student is enrolled
     if email not in activity["participants"]:
         raise HTTPException(status_code=400, detail="Student is not signed up for this activity")
 
-    # Remove the student from the participants list
     activity["participants"].remove(email)
     return {"message": f"Canceled enrollment of {email} from {activity_name}"}

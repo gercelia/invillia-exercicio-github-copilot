@@ -4,16 +4,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const signupForm = document.getElementById("signup-form");
   const messageDiv = document.getElementById("message");
 
-  // Function to fetch activities from API
   async function fetchActivities() {
     try {
       const response = await fetch("/activities");
       const activities = await response.json();
 
-      // Clear loading message
       activitiesList.innerHTML = "";
+      activitySelect.innerHTML = "";
 
-      // Populate activities list
       Object.entries(activities).forEach(([name, details]) => {
         const activityCard = document.createElement("div");
         activityCard.className = "activity-card";
@@ -44,14 +42,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
         activitiesList.appendChild(activityCard);
 
-        // Add option to select dropdown
         const option = document.createElement("option");
         option.value = name;
         option.textContent = name;
         activitySelect.appendChild(option);
       });
 
-      // Add event listeners to cancel buttons
       document.querySelectorAll(".cancel-button").forEach(button => {
         button.addEventListener("click", (event) => {
           const activity = event.target.dataset.activity;
@@ -65,7 +61,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Function to cancel signup
   async function cancelSignup(activity, email) {
     try {
       const response = await fetch(
@@ -80,7 +75,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (response.ok) {
         messageDiv.textContent = result.message;
         messageDiv.className = "success";
-        fetchActivities(); // Refresh activities list
+        fetchActivities();
       } else {
         messageDiv.textContent = result.detail || "An error occurred";
         messageDiv.className = "error";
@@ -88,7 +83,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
       messageDiv.classList.remove("hidden");
 
-      // Hide message after 5 seconds
       setTimeout(() => {
         messageDiv.classList.add("hidden");
       }, 5000);
@@ -100,7 +94,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Handle form submission
   signupForm.addEventListener("submit", async (event) => {
     event.preventDefault();
 
@@ -121,7 +114,7 @@ document.addEventListener("DOMContentLoaded", () => {
         messageDiv.textContent = result.message;
         messageDiv.className = "success";
         signupForm.reset();
-        fetchActivities(); // Atualiza a lista de atividades após o cadastro
+        fetchActivities();
       } else {
         messageDiv.textContent = result.detail || "An error occurred";
         messageDiv.className = "error";
@@ -129,7 +122,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
       messageDiv.classList.remove("hidden");
 
-      // Hide message after 5 seconds
       setTimeout(() => {
         messageDiv.classList.add("hidden");
       }, 5000);
@@ -141,6 +133,5 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Initialize app
   fetchActivities();
 });
