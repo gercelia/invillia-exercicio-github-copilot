@@ -111,3 +111,43 @@ def test_cancel_activity_not_signed_up():
     assert response.status_code == 400
     logger.info("Status code correto")
     assert response.json()["detail"] == "Student is not signed up for this activity"
+
+def test_edit_email_success():
+    logger.info("Testando atualização de email bem-sucedida")
+    response = client.put(
+        "/activities/Chess Club/edit-email",
+        json={"old_email": "michael@mergington.edu", "new_email": "newmichael@mergington.edu"}
+    )
+    assert response.status_code == 200
+    logger.info("Status code correto")
+    assert response.json()["message"] == "Updated email from michael@mergington.edu to newmichael@mergington.edu for Chess Club"
+
+def test_edit_email_activity_not_found():
+    logger.info("Testando atualização de email para uma atividade inexistente")
+    response = client.put(
+        "/activities/Nonexistent/edit-email",
+        json={"old_email": "michael@mergington.edu", "new_email": "newmichael@mergington.edu"}
+    )
+    assert response.status_code == 404
+    logger.info("Status code correto")
+    assert response.json()["detail"] == "Activity not found"
+
+def test_edit_email_old_email_not_found():
+    logger.info("Testando atualização de email com email antigo não encontrado")
+    response = client.put(
+        "/activities/Chess Club/edit-email",
+        json={"old_email": "notfound@mergington.edu", "new_email": "newmichael@mergington.edu"}
+    )
+    assert response.status_code == 400
+    logger.info("Status code correto")
+    assert response.json()["detail"] == "Old email not found in participants"
+
+def test_edit_email_new_email_already_participant():
+    logger.info("Testando atualização de email com novo email já participante")
+    response = client.put(
+        "/activities/Chess Club/edit-email",
+        json={"old_email": "michael@mergington.edu", "new_email": "daniel@mergington.edu"}
+    )
+    assert response.status_code == 400
+    logger.info("Status code correto")
+    assert response.json()["detail"] == "New email is already a participant"

@@ -10,6 +10,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse
 import os
 from pathlib import Path
+from pydantic import BaseModel
 
 app = FastAPI(title="Mergington High School API",
               description="API for viewing and signing up for extracurricular activities")
@@ -93,6 +94,10 @@ activities = {
     }
 }
 
+class EditEmailRequest(BaseModel):
+    old_email: str
+    new_email: str
+
 @app.get("/")
 def root():
     return RedirectResponse(url="/static/index.html")
@@ -126,3 +131,20 @@ def cancel_activity(activity_name: str, email: str):
 
     activity["participants"].remove(email)
     return {"message": f"Canceled enrollment of {email} from {activity_name}"}
+
+@app.put("/activities/{activity_name}/edit-email")
+def edit_email(activity_name: str, request: EditEmailRequest):
+    if activity_name not in activities:
+        raise HTTPException(status_code=404, detail="Activity not found")
+
+    activity = activities[activity_name]
+
+    if request.old_email not in activity["participants"]:
+        raise HTTPException(status_code=400, detail="Old email not found in participants")
+
+    if request.new_email in activity["participants"]:
+        raise HTTPException(status_code=400, detail="New email is already a participant")
+
+    activity["participants"].remove(request.old_email)
+    activity["participants"].append(request.new_email)
+    return {"message": f"Updated email from {request.old_email} to {request.new_email} for {activity_name}"}
